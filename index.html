@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundamental Law Firm — E-Modul Interaktif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Poppins','sans-serif'] },
+        colors: {
+          primary: '#1F2937', secondary: '#374151', accent: '#2563EB',
+          bgapp: '#F8FAFC', cardc: '#FFFFFF', borderc: '#E5E7EB', textc: '#111827',
+          successc: '#16A34A', warningc: '#F59E0B', dangerc: '#DC2626',
+          dbg: '#0B1220', dcard: '#161F2E', dborder: '#263041', dtext: '#E7ECF3'
+        },
+        borderRadius: { xl2: '18px' },
+        boxShadow: { soft: '0 4px 20px -4px rgba(17,24,39,0.08)', softer: '0 2px 10px -2px rgba(17,24,39,0.06)' }
+      }
+    }
+  }
+</script>
+<style>
+  * { font-family: 'Poppins', sans-serif; }
+  html { scroll-behavior: smooth; }
+  body { background: #F8FAFC; color:#111827; transition: background .3s ease, color .3s ease; }
+  html.dark body { background:#0B1220; color:#E7ECF3; }
+  .glass { background: rgba(255,255,255,0.72); backdrop-filter: blur(14px) saturate(180%); -webkit-backdrop-filter: blur(14px) saturate(180%); }
+  html.dark .glass { background: rgba(11,18,32,0.6); }
+  .page { display:none; }
+  .page.active { display:block; animation: fadeUp .5s ease both; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(14px);} to {opacity:1; transform:translateY(0);} }
+  .fade-in { animation: fadeUp .6s ease both; }
+  .card { background:#FFFFFF; border:1px solid #E5E7EB; border-radius:18px; box-shadow: 0 4px 20px -4px rgba(17,24,39,0.06); transition: all .25s ease; }
+  html.dark .card { background:#161F2E; border-color:#263041; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px -8px rgba(17,24,39,0.14); }
+  .btn-accent { background:#2563EB; color:#fff; border-radius:14px; transition: all .2s ease; }
+  .btn-accent:hover { background:#1d4ed8; transform: scale(1.03); }
+  .btn-outline { border:1px solid #E5E7EB; border-radius:14px; transition: all .2s ease; }
+  html.dark .btn-outline { border-color:#263041; }
+  .btn-outline:hover { border-color:#2563EB; color:#2563EB; }
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:8px;}
+  html.dark ::-webkit-scrollbar-thumb{background:#334155;}
+  .skeleton { background: linear-gradient(90deg,#E5E7EB 25%,#F1F5F9 37%,#E5E7EB 63%); background-size:400% 100%; animation: shimmer 1.4s ease infinite; border-radius:12px; }
+  html.dark .skeleton { background: linear-gradient(90deg,#263041 25%,#1E293B 37%,#263041 63%); background-size:400% 100%; }
+  @keyframes shimmer { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
+  .accordion-body { max-height:0; overflow:hidden; transition: max-height .4s ease; }
+  .toast { animation: slideIn .3s ease, fadeOut .3s ease 2.7s forwards; }
+  @keyframes slideIn { from{transform:translateX(120%); opacity:0;} to{transform:translateX(0); opacity:1;} }
+  @keyframes fadeOut { to{opacity:0; transform:translateX(20px);} }
+  .nav-link { position:relative; }
+  .nav-link.active { color:#2563EB; }
+  .nav-link.active::after { content:''; position:absolute; left:0; right:0; bottom:-6px; height:2px; background:#2563EB; border-radius:2px; }
+  input, textarea, select { font-family:'Poppins',sans-serif; }
+  .progress-track { background:#E5E7EB; border-radius:999px; overflow:hidden; }
+  html.dark .progress-track { background:#263041; }
+  .progress-bar { background: linear-gradient(90deg,#2563EB,#1D4ED8); border-radius:999px; transition: width .6s ease; }
+  .choice-btn { text-align:left; }
+  @media print {
+    nav, footer, .no-print { display:none !important; }
+    body { background:#fff !important; color:#000 !important; }
+  }
+</style>
+</head>
+<body class="bgapp">
+
+<!-- Scroll progress -->
+<div id="scrollProgress" class="fixed top-0 left-0 h-[3px] bg-accent z-[60]" style="width:0%"></div>
+
+<!-- Navbar -->
+<nav class="glass fixed top-0 w-full z-50 border-b" style="border-color:#E5E7EB">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between">
+    <div class="hidden md:flex items-center gap-7 text-sm font-medium" id="navLinks">
+      <a href="#beranda" data-page="beranda" class="nav-link dark:text-gray-200">Beranda</a>
+      <a href="#modul" data-page="modul" class="nav-link dark:text-gray-200">Modul</a>
+      <a href="#simulasi" data-page="simulasi" class="nav-link dark:text-gray-200">Simulasi Kasus</a>
+      <a href="#quiz" data-page="quiz" class="nav-link dark:text-gray-200">Quiz</a>
+      <a href="#konsultasi" data-page="konsultasi" class="nav-link dark:text-gray-200">Konsultasi</a>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleDark()" id="darkBtn" class="w-9 h-9 rounded-full btn-outline flex items-center justify-center" title="Dark mode">🌙</button>
+      <button class="md:hidden w-9 h-9 rounded-full btn-outline flex items-center justify-center" onclick="document.getElementById('mobileNav').classList.toggle('hidden')">☰</button>
+    </div>
+  </div>
+  <div id="mobileNav" class="hidden md:hidden glass border-t px-5 py-3 flex flex-col gap-3 text-sm font-medium" style="border-color:#E5E7EB">
+    <a href="#beranda" data-page="beranda" class="nav-link dark:text-gray-200">Beranda</a>
+    <a href="#modul" data-page="modul" class="nav-link dark:text-gray-200">Modul</a>
+    <a href="#simulasi" data-page="simulasi" class="nav-link dark:text-gray-200">Simulasi Kasus</a>
+    <a href="#quiz" data-page="quiz" class="nav-link dark:text-gray-200">Quiz</a>
+    <a href="#konsultasi" data-page="konsultasi" class="nav-link dark:text-gray-200">Konsultasi</a>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-5 md:px-8 pt-24 pb-20">
+
+<!-- ================= PAGE: BERANDA ================= -->
+<section id="page-beranda" class="page">
+  <div class="grid md:grid-cols-2 gap-10 items-center py-10 fade-in">
+    <div>
+      <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-accent border border-blue-100 mb-5 dark:bg-blue-950 dark:border-blue-900">E-Modul Interaktif · Semester 2</span>
+      <h1 class="text-4xl md:text-5xl font-semibold leading-tight dark:text-white" style="color:#111827">Memahami dunia firma hukum, dari nol sampai siap praktik.</h1>
+      <p class="mt-5 text-gray-600 dark:text-gray-300 text-base leading-relaxed">Platform belajar digital ini dibuat untuk mahasiswa hukum semester 2 yang ingin memahami cara kerja firma hukum modern — struktur organisasi, alur perkara, etika profesi, hingga simulasi kasus nyata.</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <button onclick="goPage('modul')" class="btn-accent px-6 py-3 text-sm font-medium">Mulai Belajar →</button>
+        <button onclick="goPage('simulasi')" class="btn-outline px-6 py-3 text-sm font-medium dark:text-gray-200">Coba Simulasi Kasus</button>
+      </div>
+      <div class="mt-10">
+        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
+          <span>Progres belajar kamu</span>
+          <span id="homeProgressLabel">0%</span>
+        </div>
+        <div class="progress-track h-2 w-full max-w-sm"><div id="homeProgressBar" class="progress-bar h-2" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="card p-6 md:p-8" data-aos>
+      <p class="text-xs uppercase tracking-wide text-gray-400 mb-4">Roadmap Pembelajaran</p>
+      <ol class="space-y-4">
+        <li class="flex gap-3"><span class="w-7 h-7 rounded-full bg-accent text-white text-xs flex items-center justify-center shrink-0">1</span><div><p class="font-medium dark:text-white">Kenali dasar & struktur firma hukum</p><p class="text-xs text-gray-500 dark:text-gray-400">Bab 1–2</p></div></li>
+        <li class="flex gap-3"><span class="w-7 h-7 rounded-full bg-accent text-white text-xs flex items-center justify-center shrink-0">2</span><div><p class="font-medium dark:text-white">Pelajari bidang praktik & alur perkara</p><p class="text-xs text-gray-500 dark:text-gray-400">Bab 3–4</p></div></li>
+        <li class="flex gap-3"><span class="w-7 h-7 rounded-full bg-accent text-white text-xs flex items-center justify-center shrink-0">3</span><div><p class="font-medium dark:text-white">Pahami etika, dokumen & teknologi legal</p><p class="text-xs text-gray-500 dark:text-gray-400">Bab 5–7</p></div></li>
+        <li class="flex gap-3"><span class="w-7 h-7 rounded-full bg-successc text-white text-xs flex items-center justify-center shrink-0">✓</span><div><p class="font-medium dark:text-white">Uji pemahaman lewat simulasi & quiz</p><p class="text-xs text-gray-500 dark:text-gray-400">Sertifikat jika nilai &gt; 80</p></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="py-10">
+    <h2 class="text-2xl font-semibold dark:text-white">Apa itu firma hukum?</h2>
+    <p class="mt-3 text-gray-600 dark:text-gray-300 max-w-3xl leading-relaxed">Firma hukum adalah organisasi profesional tempat advokat bekerja secara kolektif untuk memberikan jasa hukum — mulai dari konsultasi, penyusunan dokumen, hingga pendampingan di pengadilan. Berbeda dari praktik advokat perorangan, firma hukum memiliki struktur, spesialisasi, dan sistem kerja yang menyerupai organisasi bisnis modern.</p>
+  </div>
+
+  <div class="grid sm:grid-cols-3 gap-5 py-6">
+    <div class="card p-6 text-center"><p class="text-3xl font-semibold text-accent" id="statAdvokat">0</p><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Advokat terdaftar di Indonesia</p></div>
+    <div class="card p-6 text-center"><p class="text-3xl font-semibold text-accent" id="statFirma">0</p><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Firma hukum aktif di kota besar</p></div>
+    <div class="card p-6 text-center"><p class="text-3xl font-semibold text-accent" id="statPerkara">0</p><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Perkara perdata masuk pengadilan / tahun</p></div>
+  </div>
+  <p class="text-xs text-gray-400 -mt-3">*Angka bersifat estimasi untuk ilustrasi pembelajaran.</p>
+
+  <div class="py-10">
+    <h2 class="text-2xl font-semibold dark:text-white mb-5">Mengapa mahasiswa perlu belajar ini?</h2>
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="card p-6"><p class="font-medium dark:text-white mb-2">Kesiapan karier</p><p class="text-sm text-gray-500 dark:text-gray-400">Memahami budaya kerja firma hukum sejak dini membantu mahasiswa memilih jalur karier yang tepat — litigasi, korporasi, atau in-house counsel.</p></div>
+      <div class="card p-6"><p class="font-medium dark:text-white mb-2">Kemampuan praktis</p><p class="text-sm text-gray-500 dark:text-gray-400">Materi disusun agar mahasiswa terbiasa dengan istilah, dokumen, dan alur kerja yang benar-benar dipakai di dunia profesional.</p></div>
+      <div class="card p-6"><p class="font-medium dark:text-white mb-2">Simulasi nyata</p><p class="text-sm text-gray-500 dark:text-gray-400">Belajar tidak hanya teori — mahasiswa mengambil keputusan dalam simulasi kasus dan langsung melihat konsekuensinya.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PAGE: MODUL ================= -->
+<section id="page-modul" class="page">
+  <div class="fade-in">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-3xl font-semibold dark:text-white">Modul Pembelajaran</h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">7 bab fundamental tentang firma hukum, disusun untuk mahasiswa semester 2.</p>
+      </div>
+      <div class="flex gap-2">
+        <div class="relative">
+          <input id="searchInput" oninput="renderModules(this.value)" placeholder="Cari materi..." class="pl-9 pr-4 py-2.5 rounded-[14px] border text-sm w-56 dark:bg-transparent dark:text-white" style="border-color:#E5E7EB">
+          <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+        </div>
+        <button onclick="window.print()" class="btn-outline px-4 py-2.5 text-sm dark:text-gray-200">Cetak / PDF</button>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
+        <span>Progres modul</span><span id="modProgressLabel">0 / 7 bab dibaca</span>
+      </div>
+      <div class="progress-track h-2"><div id="modProgressBar" class="progress-bar h-2" style="width:0%"></div></div>
+    </div>
+
+    <div class="grid lg:grid-cols-[1fr_260px] gap-8">
+      <div id="modulesContainer" class="space-y-4"></div>
+
+      <aside class="hidden lg:block">
+        <div class="sticky top-24 card p-5">
+          <p class="text-xs uppercase tracking-wide text-gray-400 mb-3">Daftar Isi</p>
+          <ul id="tocList" class="space-y-2 text-sm"></ul>
+          <hr class="my-4" style="border-color:#E5E7EB">
+          <p class="text-xs uppercase tracking-wide text-gray-400 mb-3">Bookmark</p>
+          <ul id="bookmarkList" class="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+            <li class="text-xs italic">Belum ada materi disimpan.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PAGE: SIMULASI ================= -->
+<section id="page-simulasi" class="page">
+  <div class="fade-in">
+    <h1 class="text-3xl font-semibold dark:text-white">Simulasi Kasus</h1>
+    <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm max-w-2xl">Ambil peran sebagai junior associate. Pilih langkah hukum di setiap kasus dan lihat konsekuensinya.</p>
+
+    <div id="caseGrid" class="grid sm:grid-cols-2 gap-5 mt-8"></div>
+
+    <div id="caseRunner" class="hidden mt-8 card p-6 md:p-8"></div>
+  </div>
+</section>
+
+<!-- ================= PAGE: QUIZ ================= -->
+<section id="page-quiz" class="page">
+  <div class="fade-in">
+    <div id="quizIntro">
+      <h1 class="text-3xl font-semibold dark:text-white">Uji Pemahaman</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm max-w-2xl">20 soal pilihan ganda mencakup seluruh materi modul. Nilai di atas 80 mendapat sertifikat digital.</p>
+      <div class="card p-6 mt-6 max-w-md">
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Masukkan nama kamu untuk memulai:</p>
+        <input id="quizName" placeholder="Nama lengkap" class="w-full px-4 py-2.5 rounded-[14px] border text-sm mb-4 dark:bg-transparent dark:text-white" style="border-color:#E5E7EB">
+        <button onclick="startQuiz()" class="btn-accent w-full py-3 text-sm font-medium">Mulai Quiz</button>
+      </div>
+    </div>
+
+    <div id="quizArea" class="hidden">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm text-gray-500 dark:text-gray-400" id="quizProgressLabel">Soal 1 / 20</span>
+        <span class="text-sm text-gray-500 dark:text-gray-400" id="quizScoreLive"></span>
+      </div>
+      <div class="progress-track h-2 mb-6"><div id="quizProgressBar" class="progress-bar h-2" style="width:5%"></div></div>
+      <div id="quizQuestionCard" class="card p-6 md:p-8"></div>
+      <div class="flex justify-between mt-5">
+        <button onclick="prevQuestion()" class="btn-outline px-5 py-2.5 text-sm dark:text-gray-200">← Sebelumnya</button>
+        <button onclick="nextQuestion()" id="nextBtn" class="btn-accent px-5 py-2.5 text-sm">Selanjutnya →</button>
+      </div>
+    </div>
+
+    <div id="quizResult" class="hidden"></div>
+  </div>
+</section>
+
+<!-- ================= PAGE: KONSULTASI ================= -->
+<section id="page-konsultasi" class="page">
+  <div class="fade-in grid md:grid-cols-2 gap-10">
+    <div>
+      <h1 class="text-3xl font-semibold dark:text-white">Konsultasi</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm leading-relaxed max-w-md">Ada pertanyaan seputar materi atau ingin diskusi kasus hukum sederhana? Isi form di samping — pesan kamu akan diteruskan langsung lewat WhatsApp.</p>
+      <div class="mt-8 space-y-4">
+        <div class="card p-5 flex gap-3 items-start"><span class="text-xl">💬</span><div><p class="font-medium text-sm dark:text-white">Respon cepat</p><p class="text-xs text-gray-500 dark:text-gray-400">Pertanyaan diteruskan langsung ke WhatsApp pengajar/asisten modul.</p></div></div>
+        <div class="card p-5 flex gap-3 items-start"><span class="text-xl">🔒</span><div><p class="font-medium text-sm dark:text-white">Kerahasiaan terjaga</p><p class="text-xs text-gray-500 dark:text-gray-400">Data yang kamu kirim hanya digunakan untuk keperluan konsultasi akademik.</p></div></div>
+      </div>
+      <div class="mt-8">
+        <p class="text-sm font-medium mb-3 dark:text-white">FAQ Singkat</p>
+        <div id="faqList" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <form id="consultForm" class="card p-6 md:p-8 space-y-4" onsubmit="submitConsult(event)">
+      <div><label class="text-xs text-gray-500 dark:text-gray-400">Nama</label><input required name="nama" class="w-full mt-1 px-4 py-2.5 rounded-[14px] border text-sm dark:bg-transparent dark:text-white" style="border-color:#E5E7EB"></div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="text-xs text-gray-500 dark:text-gray-400">Email</label><input required type="email" name="email" class="w-full mt-1 px-4 py-2.5 rounded-[14px] border text-sm dark:bg-transparent dark:text-white" style="border-color:#E5E7EB"></div>
+        <div><label class="text-xs text-gray-500 dark:text-gray-400">No. HP</label><input required name="hp" class="w-full mt-1 px-4 py-2.5 rounded-[14px] border text-sm dark:bg-transparent dark:text-white" style="border-color:#E5E7EB"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="text-xs text-gray-500 dark:text-gray-400">Universitas</label><input required name="univ" class="w-full mt-1 px-4 py-2.5 rounded-[14px] border text-sm dark:bg-transparent dark:text-white" style="border-color:#E5E7EB"></div>
+        <div><label class="text-xs text-gray-500 dark:text-gray-400">Semester</label><input required name="semester" class="w-full mt-1 px-4 py-2.5 rounded-[14px] border text-sm dark:bg-transparent dark:text-white" style="border-color:#E5E7EB"></div>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 dark:text-gray-400">Kategori hukum</label>
+        <select required name="kategori" class="w-full mt-1 px-4 py-2.5 rounded-[14px] border text-sm dark:bg-transparent dark:text-white" style="border-color:#E5E7EB">
+          <option value="">Pilih kategori</option>
+          <option>Pidana</option><option>Perdata</option><option>Korporasi</option>
+          <option>Ketenagakerjaan</option><option>Pajak</option><option>HKI</option><option>Arbitrase</option>
+        </select>
+      </div>
+      <div><label class="text-xs text-gray-500 dark:text-gray-400">Pertanyaan</label><textarea required name="pertanyaan" rows="4" class="w-full mt-1 px-4 py-2.5 rounded-[14px] border text-sm dark:bg-transparent dark:text-white" style="border-color:#E5E7EB"></textarea></div>
+      <button type="submit" class="btn-accent w-full py-3 text-sm font-medium flex items-center justify-center gap-2">Konsultasi via WhatsApp</button>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<footer class="border-t py-10 mt-10" style="border-color:#E5E7EB">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 flex flex-col md:flex-row justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
+    <p>© 2026 Fundamental Law Firm E-Module. Dibuat untuk keperluan akademik.</p>
+    <div class="flex gap-4">
+      <button onclick="shareModul()" class="hover:text-accent">Bagikan modul</button>
+      <button onclick="scrollTo({top:0,behavior:'smooth'})" class="hover:text-accent">Kembali ke atas</button>
+    </div>
+  </div>
+</footer>
+
+<button id="backToTop" onclick="scrollTo({top:0,behavior:'smooth'})" class="hidden fixed bottom-6 right-6 w-11 h-11 rounded-full btn-accent shadow-soft z-40">↑</button>
+<div id="toastContainer" class="fixed bottom-6 left-6 z-50 flex flex-col gap-2"></div>
+
+<script>
+/* ============ DATA ============ */
+const modules = [
+{ id:1, title:'Apa itu Firma Hukum', readTime:4, content:`Firma hukum, atau yang sering disebut kantor advokat, adalah badan usaha profesional yang didirikan oleh satu advokat atau lebih untuk memberikan jasa hukum kepada klien perorangan, perusahaan, maupun lembaga pemerintah. Berbeda dari praktik advokat individu, firma hukum bekerja secara kolektif dengan pembagian keahlian yang jelas, sehingga mampu menangani perkara kompleks secara lebih efisien dan menyeluruh.
+
+Di Indonesia, keberadaan firma hukum tidak lepas dari Undang-Undang Nomor 18 Tahun 2003 tentang Advokat, yang mengatur syarat menjadi advokat, kode etik profesi, hingga bentuk kerja sama antar advokat dalam satu kantor. Firma hukum bisa berbentuk persekutuan sederhana beranggotakan dua atau tiga advokat, hingga entitas besar dengan puluhan partner dan ratusan associate yang tersebar di berbagai kota.
+
+Secara umum, jasa yang ditawarkan firma hukum terbagi menjadi dua kategori besar: litigasi (penanganan sengketa di pengadilan) dan non-litigasi (konsultasi, penyusunan kontrak, due diligence, hingga pendaftaran kekayaan intelektual). Sebuah firma hukum modern biasanya tidak hanya mengandalkan kemampuan argumentasi hukum, tetapi juga manajemen klien, riset berbasis data, dan penguasaan teknologi.
+
+Bagi mahasiswa semester dua, memahami apa itu firma hukum adalah pintu masuk untuk mengenal ekosistem profesi hukum secara nyata — bagaimana ilmu yang dipelajari di kelas akhirnya diterapkan dalam pekerjaan sehari-hari seorang advokat. Pemahaman ini juga membantu mahasiswa menentukan arah spesialisasi yang ingin ditekuni di semester-semester berikutnya, apakah condong ke litigasi, hukum korporasi, atau bidang lain seperti kekayaan intelektual dan ketenagakerjaan.` },
+
+{ id:2, title:'Struktur Organisasi Firma Hukum', readTime:5, content:`Sama seperti organisasi bisnis pada umumnya, firma hukum memiliki jenjang jabatan yang jelas. Memahami struktur ini penting karena setiap posisi memiliki tanggung jawab, wewenang, dan jalur karier yang berbeda.
+
+Managing Partner adalah pemimpin tertinggi firma, bertanggung jawab atas arah strategis, keuangan, dan reputasi kantor secara keseluruhan. Senior Partner biasanya memegang klien-klien besar dan menjadi rujukan dalam perkara yang rumit, sekaligus membimbing partner dan associate yang lebih junior.
+
+Associate adalah advokat yang menangani perkara secara langsung di bawah arahan partner — menyusun dokumen, melakukan riset hukum, dan mendampingi klien dalam pertemuan maupun persidangan. Junior Associate umumnya baru lulus atau memiliki pengalaman kerja di bawah tiga tahun, masih dalam tahap pembelajaran intensif mengenai praktik hukum sehari-hari.
+
+Di luar jajaran advokat, ada Paralegal yang membantu riset, administrasi berkas, dan penyusunan draf awal dokumen hukum tanpa memiliki izin beracara sebagai advokat. Legal Secretary berperan mengatur jadwal, korespondensi, dan dokumentasi kantor. Terakhir, staf Admin menangani operasional non-hukum seperti keuangan, sumber daya manusia, dan fasilitas kantor.
+
+Struktur berjenjang ini memastikan setiap perkara ditangani oleh orang dengan tingkat keahlian yang sesuai — partner senior mengambil keputusan strategis, sementara associate dan paralegal menangani detail teknis. Bagi mahasiswa, memahami struktur ini membantu menetapkan ekspektasi realistis saat memulai karier: hampir semua advokat besar memulai posisinya sebagai junior associate sebelum naik jenjang berdasarkan jam terbang dan hasil kerja.` },
+
+{ id:3, title:'Bidang Praktik Firma Hukum', readTime:5, content:`Firma hukum modern jarang menangani "semua jenis hukum" secara merata. Sebagian besar memiliki fokus atau divisi khusus agar layanan yang diberikan lebih mendalam dan kompetitif.
+
+Bidang Pidana menangani perkara yang melibatkan pelanggaran hukum pidana, mulai dari pendampingan tersangka, penyusunan pembelaan, hingga pengajuan upaya hukum. Bidang Perdata berurusan dengan sengketa antar individu atau badan hukum, seperti wanprestasi, warisan, atau perceraian.
+
+Bidang Korporasi berfokus pada kebutuhan hukum perusahaan: pendirian badan usaha, merger dan akuisisi, penyusunan kontrak bisnis, hingga kepatuhan regulasi. Bidang Ketenagakerjaan menangani hubungan industrial, mulai dari penyusunan perjanjian kerja hingga sengketa pemutusan hubungan kerja (PHK).
+
+Bidang Pajak membantu klien memahami kewajiban perpajakan dan menyelesaikan sengketa dengan otoritas pajak. Bidang HKI (Hak Kekayaan Intelektual) mengurus perlindungan merek, paten, hak cipta, dan desain industri — bidang yang makin relevan seiring pertumbuhan bisnis digital dan kreatif. Terakhir, bidang Arbitrase menangani penyelesaian sengketa di luar pengadilan melalui lembaga arbitrase, yang umumnya dipilih karena prosesnya lebih cepat dan rahasia dibanding litigasi konvensional.
+
+Seorang advokat sering kali memilih untuk mendalami satu atau dua bidang saja agar dapat memberikan nilai tambah yang jelas bagi kliennya. Bagi mahasiswa, mengenal ragam bidang praktik ini sejak awal membantu memetakan mata kuliah pilihan dan pengalaman magang yang relevan dengan minat karier di masa depan.` },
+
+{ id:4, title:'Alur Penanganan Perkara', readTime:6, content:`Setiap perkara yang masuk ke firma hukum umumnya melewati delapan tahapan utama, meskipun detailnya bisa berbeda tergantung jenis kasus.
+
+Tahap pertama dimulai saat Client datang menyampaikan permasalahan yang dihadapi. Firma kemudian melakukan Legal Consultation untuk memahami duduk perkara secara menyeluruh, termasuk mengumpulkan dokumen dan kronologi peristiwa. Berdasarkan konsultasi ini, advokat menyusun Legal Opinion — pendapat hukum tertulis yang menjelaskan posisi hukum klien, risiko yang mungkin timbul, dan opsi penyelesaian yang tersedia.
+
+Jika kasus memerlukan kesepakatan formal, tahap berikutnya adalah penyusunan Kontrak atau dokumen hukum lain yang mengikat para pihak. Setelah itu, firma memberikan Pendampingan kepada klien — baik dalam negosiasi, mediasi, maupun proses hukum lanjutan.
+
+Apabila sengketa tidak dapat diselesaikan secara musyawarah, kasus akan berlanjut ke Persidangan, di mana advokat mewakili klien dalam proses litigasi di pengadilan. Proses ini berakhir dengan Putusan dari hakim atau majelis yang menentukan hasil akhir perkara.
+
+Tahap terakhir yang sering terlewat namun penting adalah Evaluasi — firma meninjau kembali keseluruhan proses penanganan perkara untuk memastikan kepuasan klien dan mencatat pembelajaran untuk kasus serupa di masa depan. Alur ini membantu mahasiswa memahami bahwa pekerjaan advokat tidak dimulai dan berakhir di ruang sidang, melainkan sebuah proses menyeluruh yang menuntut ketelitian di setiap tahapnya.` },
+
+{ id:5, title:'Etika Profesi Advokat', readTime:4, content:`Etika menjadi fondasi utama profesi advokat, karena kepercayaan klien bergantung sepenuhnya pada integritas orang yang mewakili kepentingan hukumnya. Di Indonesia, advokat terikat pada Kode Etik Advokat Indonesia yang mengatur perilaku profesional di dalam maupun di luar persidangan.
+
+Kerahasiaan klien adalah prinsip yang wajib dijunjung tinggi — segala informasi yang disampaikan klien kepada advokat tidak boleh diungkapkan kepada pihak lain tanpa izin, bahkan setelah hubungan profesional berakhir. Prinsip ini membangun kepercayaan yang menjadi dasar hubungan advokat-klien.
+
+Conflict of interest, atau benturan kepentingan, juga menjadi perhatian serius. Advokat tidak diperbolehkan menangani perkara yang bertentangan dengan kepentingan klien lain yang pernah atau sedang ditanganinya, karena hal ini dapat merugikan salah satu pihak dan mencederai objektivitas advokat.
+
+Profesionalisme mencakup aspek yang lebih luas: kejujuran dalam memberikan nasihat hukum, kesungguhan dalam mempersiapkan perkara, serta sikap hormat kepada rekan sejawat, hakim, dan pihak lawan. Advokat yang profesional tidak menjanjikan hasil yang pasti kepada klien, melainkan memberikan gambaran realistis berdasarkan analisis hukum yang matang.
+
+Pelanggaran terhadap kode etik dapat berujung pada sanksi mulai dari teguran hingga pemberhentian sebagai advokat. Bagi mahasiswa, memahami etika profesi sejak dini penting agar kelak dapat membangun reputasi yang baik dan dipercaya, karena di dunia hukum, reputasi adalah aset yang jauh lebih berharga daripada kemenangan satu perkara.` },
+
+{ id:6, title:'Dokumen yang Sering Dibuat', readTime:5, content:`Pekerjaan sehari-hari di firma hukum sangat erat dengan penyusunan dokumen. Setiap dokumen memiliki fungsi dan kekuatan hukum yang berbeda, sehingga penting bagi mahasiswa untuk mengenal jenis-jenisnya sejak awal.
+
+Surat Kuasa adalah dokumen yang memberi wewenang kepada advokat untuk bertindak atas nama klien dalam suatu perkara. Somasi merupakan teguran tertulis resmi kepada pihak lain sebelum sengketa dibawa ke jalur hukum lebih lanjut, biasanya menjadi langkah awal sebelum gugatan diajukan.
+
+Legal Opinion, seperti dibahas pada bab sebelumnya, adalah pendapat hukum tertulis mengenai suatu permasalahan. Perjanjian atau kontrak mengatur hak dan kewajiban para pihak dalam suatu hubungan hukum, mulai dari jual beli hingga kerja sama bisnis.
+
+Gugatan adalah dokumen yang diajukan penggugat ke pengadilan untuk memulai proses litigasi perdata, memuat identitas pihak, dasar hukum, dan tuntutan. Jawaban adalah tanggapan tergugat atas gugatan tersebut. Proses ini kemudian dapat dilanjutkan dengan Replik — tanggapan penggugat atas jawaban tergugat — dan Duplik, yaitu tanggapan balik tergugat atas replik tersebut.
+
+Rangkaian dokumen replik dan duplik ini menunjukkan bagaimana proses persidangan perdata berjalan secara bertahap dan argumentatif, di mana masing-masing pihak memiliki kesempatan untuk memperkuat posisinya sebelum hakim mengambil keputusan. Ketelitian dalam menyusun setiap dokumen ini sangat menentukan kekuatan posisi hukum klien di persidangan.` },
+
+{ id:7, title:'Teknologi pada Law Firm Modern', readTime:5, content:`Dunia hukum yang dahulu identik dengan tumpukan berkas kertas kini bertransformasi seiring masuknya teknologi ke dalam praktik firma hukum. Memahami tren ini penting agar mahasiswa siap menghadapi dunia kerja yang semakin digital.
+
+Legal AI mulai digunakan untuk membantu riset hukum, meringkas dokumen panjang, hingga memprediksi kemungkinan hasil suatu perkara berdasarkan data putusan sebelumnya. Teknologi ini mempercepat pekerjaan yang dulunya memakan waktu berjam-jam menjadi hitungan menit, meskipun keputusan akhir tetap berada di tangan advokat.
+
+E-Court adalah sistem peradilan elektronik yang memungkinkan pendaftaran perkara, pembayaran panjar, hingga persidangan dilakukan secara daring, mempercepat proses administrasi yang sebelumnya manual. Legal Research tools membantu advokat mencari peraturan perundang-undangan dan yurisprudensi secara lebih efisien dibanding metode pencarian manual di perpustakaan.
+
+Case Management System digunakan firma hukum untuk mengelola jadwal, dokumen, dan komunikasi klien dalam satu platform terpusat, sehingga tidak ada informasi yang tercecer. Digital Signature memungkinkan penandatanganan dokumen hukum secara sah tanpa bertatap muka langsung, mempercepat proses transaksi bisnis lintas kota bahkan lintas negara.
+
+Cloud Storage memberikan tempat penyimpanan dokumen yang aman dan dapat diakses dari mana saja, sekaligus mengurangi risiko kehilangan berkas fisik. Firma hukum yang mengadopsi teknologi-teknologi ini umumnya mampu bekerja lebih cepat, transparan, dan kompetitif — sebuah kompetensi yang kini mulai dianggap setara pentingnya dengan penguasaan hukum substantif itu sendiri.` }
+];
+
+const quizQuestions = [
+{q:'Apa perbedaan utama firma hukum dengan praktik advokat individu?', options:['Firma hukum tidak boleh menangani perkara pidana','Firma hukum bekerja secara kolektif dengan pembagian keahlian','Firma hukum tidak diatur undang-undang','Firma hukum hanya boleh dimiliki satu orang'], correct:1, explanation:'Firma hukum bekerja secara kolektif dengan pembagian keahlian yang jelas, berbeda dari praktik individu.'},
+{q:'Undang-undang apa yang mengatur profesi advokat di Indonesia?', options:['UU No. 8 Tahun 1999','UU No. 18 Tahun 2003','UU No. 40 Tahun 2007','UU No. 13 Tahun 2003'], correct:1, explanation:'UU No. 18 Tahun 2003 tentang Advokat mengatur syarat, kode etik, dan bentuk kerja sama advokat.'},
+{q:'Siapa yang bertanggung jawab atas arah strategis dan keuangan firma hukum?', options:['Junior Associate','Paralegal','Managing Partner','Legal Secretary'], correct:2, explanation:'Managing Partner adalah pemimpin tertinggi firma yang bertanggung jawab atas arah strategis dan keuangan.'},
+{q:'Posisi yang membantu riset dan administrasi berkas tanpa izin beracara sebagai advokat adalah...', options:['Senior Partner','Paralegal','Associate','Managing Partner'], correct:1, explanation:'Paralegal membantu riset dan administrasi berkas tanpa memiliki izin beracara sebagai advokat.'},
+{q:'Bidang praktik yang menangani merger, akuisisi, dan kontrak bisnis disebut...', options:['Bidang Pidana','Bidang Korporasi','Bidang Pajak','Bidang HKI'], correct:1, explanation:'Bidang Korporasi berfokus pada kebutuhan hukum perusahaan seperti merger, akuisisi, dan kontrak bisnis.'},
+{q:'Perlindungan merek, paten, dan hak cipta termasuk dalam bidang praktik...', options:['Ketenagakerjaan','Arbitrase','HKI','Perdata'], correct:2, explanation:'Bidang HKI mengurus perlindungan merek, paten, hak cipta, dan desain industri.'},
+{q:'Mengapa arbitrase sering dipilih dibanding litigasi konvensional?', options:['Karena wajib menurut undang-undang','Karena prosesnya lebih cepat dan rahasia','Karena tidak memerlukan advokat','Karena biayanya selalu gratis'], correct:1, explanation:'Arbitrase umumnya dipilih karena prosesnya lebih cepat dan rahasia dibanding litigasi.'},
+{q:'Tahap pertama dalam alur penanganan perkara adalah...', options:['Persidangan','Client datang','Putusan','Evaluasi'], correct:1, explanation:'Alur dimulai saat client datang menyampaikan permasalahan yang dihadapi.'},
+{q:'Dokumen tertulis yang menjelaskan posisi hukum klien dan opsi penyelesaian disebut...', options:['Somasi','Gugatan','Legal Opinion','Duplik'], correct:2, explanation:'Legal Opinion adalah pendapat hukum tertulis mengenai posisi hukum klien dan opsi penyelesaian.'},
+{q:'Tahap terakhir dalam alur penanganan perkara yang sering terlewat adalah...', options:['Evaluasi','Kontrak','Konsultasi','Pendampingan'], correct:0, explanation:'Evaluasi meninjau keseluruhan proses penanganan perkara sebagai bahan pembelajaran ke depan.'},
+{q:'Prinsip etika yang melarang advokat mengungkapkan informasi klien tanpa izin disebut...', options:['Profesionalisme','Kerahasiaan klien','Conflict of interest','Kode etik umum'], correct:1, explanation:'Kerahasiaan klien mewajibkan advokat menjaga informasi klien meski hubungan profesional berakhir.'},
+{q:'Conflict of interest terjadi ketika...', options:['Advokat menang perkara','Advokat menangani perkara yang bertentangan dengan kepentingan klien lain','Advokat mengambil cuti','Advokat berpindah firma'], correct:1, explanation:'Conflict of interest terjadi saat advokat menangani perkara yang bertentangan dengan kepentingan klien lain.'},
+{q:'Dokumen teguran resmi sebelum gugatan diajukan disebut...', options:['Somasi','Replik','Jawaban','Duplik'], correct:0, explanation:'Somasi adalah teguran tertulis resmi sebelum sengketa dibawa ke jalur hukum lebih lanjut.'},
+{q:'Setelah tergugat memberikan Jawaban, penggugat dapat mengajukan...', options:['Somasi baru','Replik','Surat Kuasa','Legal Opinion'], correct:1, explanation:'Replik adalah tanggapan penggugat atas jawaban tergugat.'},
+{q:'Tanggapan balik tergugat atas replik penggugat disebut...', options:['Duplik','Gugatan','Somasi','Kontrak'], correct:0, explanation:'Duplik adalah tanggapan balik tergugat atas replik yang diajukan penggugat.'},
+{q:'Teknologi yang membantu meringkas dokumen dan memprediksi hasil perkara berdasarkan data disebut...', options:['E-Court','Legal AI','Cloud Storage','Digital Signature'], correct:1, explanation:'Legal AI membantu riset, meringkas dokumen, dan memprediksi kemungkinan hasil perkara berdasarkan data.'},
+{q:'Sistem peradilan elektronik untuk pendaftaran perkara dan persidangan daring disebut...', options:['Case Management System','E-Court','Legal Research Tools','Digital Signature'], correct:1, explanation:'E-Court memungkinkan pendaftaran perkara dan persidangan dilakukan secara daring.'},
+{q:'Manfaat utama Cloud Storage bagi firma hukum adalah...', options:['Menggantikan advokat','Penyimpanan dokumen aman dan dapat diakses dari mana saja','Mengganti kode etik','Menghapus kebutuhan riset hukum'], correct:1, explanation:'Cloud Storage memberi tempat penyimpanan dokumen yang aman dan dapat diakses dari mana saja.'},
+{q:'Bidang praktik yang menangani sengketa PHK termasuk dalam bidang...', options:['Pajak','Ketenagakerjaan','HKI','Arbitrase'], correct:1, explanation:'Bidang Ketenagakerjaan menangani hubungan industrial termasuk sengketa PHK.'},
+{q:'Mengapa mahasiswa semester 2 perlu mempelajari struktur dan alur kerja firma hukum sejak dini?', options:['Agar bisa langsung menjadi partner','Untuk memahami ekosistem profesi dan menentukan arah spesialisasi karier','Karena wajib untuk lulus kuliah','Agar tidak perlu magang'], correct:1, explanation:'Pemahaman sejak dini membantu mahasiswa menentukan arah spesialisasi dan kesiapan karier di dunia hukum.'}
+];
+
+const cases = [
+{ id:'wanprestasi', title:'Kasus Wanprestasi', tag:'Perdata', desc:'Klien merasa dirugikan karena rekan bisnisnya tidak memenuhi isi perjanjian kerja sama.',
+  steps:[
+    { q:'Klien datang membawa keluhan bahwa mitra bisnisnya tidak membayar sesuai perjanjian. Apa langkah pertama yang tepat?',
+      choices:[
+        {text:'Langsung layangkan somasi ke pihak lawan', ok:false, fb:'Kurang tepat. Sebelum bertindak, advokat perlu memverifikasi bukti dan isi perjanjian agar posisi hukum klien kuat.'},
+        {text:'Minta klien mengumpulkan bukti perjanjian dan kronologi, lalu tinjau klausul kontrak', ok:true, fb:'Tepat. Verifikasi bukti dan kontrak adalah dasar sebelum mengambil langkah hukum apa pun.'},
+        {text:'Sarankan klien langsung mengajukan gugatan ke pengadilan', ok:false, fb:'Terlalu terburu-buru. Litigasi biasanya menjadi upaya terakhir setelah upaya lain ditempuh.'}
+      ]},
+    { q:'Setelah bukti lengkap dan somasi dikirim namun tidak direspons, apa langkah selanjutnya?',
+      choices:[
+        {text:'Tawarkan mediasi untuk mencari penyelesaian di luar pengadilan', ok:true, fb:'Baik. Mediasi lebih efisien dari segi waktu dan biaya sebelum menempuh litigasi.'},
+        {text:'Diamkan saja perkara tersebut', ok:false, fb:'Tidak tepat. Membiarkan perkara justru merugikan kepentingan klien.'},
+        {text:'Langsung ajukan gugatan tanpa upaya lanjutan', ok:false, fb:'Bisa dilakukan, namun sebaiknya upaya damai dicoba terlebih dahulu jika klausul kontrak memungkinkan.'}
+      ]}
+  ]},
+{ id:'perceraian', title:'Kasus Perceraian', tag:'Perdata', desc:'Seorang klien ingin mengajukan perceraian dan menanyakan hak asuh anak.',
+  steps:[
+    { q:'Dokumen apa yang pertama kali perlu diminta dari klien?',
+      choices:[
+        {text:'Akta nikah dan akta kelahiran anak', ok:true, fb:'Tepat. Dokumen ini menjadi dasar utama dalam proses permohonan cerai dan penentuan hak asuh.'},
+        {text:'Langsung menyusun surat gugatan tanpa dokumen pendukung', ok:false, fb:'Kurang tepat. Dokumen pendukung wajib dilengkapi agar gugatan sah secara formil.'},
+        {text:'Meminta klien menyelesaikan masalah secara pribadi tanpa pendampingan hukum', ok:false, fb:'Bukan peran advokat untuk menghindar dari pendampingan yang memang dibutuhkan klien.'}
+      ]},
+    { q:'Klien dan pasangannya masih bisa berkomunikasi dengan baik. Pendekatan apa yang lebih disarankan?',
+      choices:[
+        {text:'Cerai secara kontensius (dengan sengketa) di pengadilan', ok:false, fb:'Kurang efisien jika kedua pihak sebenarnya masih bisa bernegosiasi secara damai.'},
+        {text:'Mediasi keluarga untuk menyepakati hak asuh dan pembagian harta terlebih dahulu', ok:true, fb:'Tepat. Mediasi membantu mengurangi konflik dan mempercepat proses, terutama saat menyangkut anak.'},
+        {text:'Menyarankan klien membatalkan niat bercerai', ok:false, fb:'Bukan wewenang advokat untuk mengarahkan keputusan pribadi klien.'}
+      ]}
+  ]},
+{ id:'phk', title:'Kasus PHK', tag:'Ketenagakerjaan', desc:'Seorang karyawan diberhentikan sepihak oleh perusahaan tanpa pesangon.',
+  steps:[
+    { q:'Langkah pertama dalam menangani kasus PHK adalah...', 
+      choices:[
+        {text:'Mengecek apakah alasan PHK sah menurut peraturan ketenagakerjaan', ok:true, fb:'Tepat. Validitas alasan PHK menentukan hak-hak yang bisa dituntut klien.'},
+        {text:'Langsung mendaftarkan gugatan ke Pengadilan Hubungan Industrial', ok:false, fb:'Terlalu cepat. Ada tahap perundingan yang perlu ditempuh lebih dulu.'},
+        {text:'Menyarankan klien menerima keputusan tanpa perlawanan', ok:false, fb:'Kurang tepat jika hak-hak klien belum terpenuhi sesuai aturan.'}
+      ]},
+    { q:'Perusahaan menolak berunding. Apa jalur yang tepat selanjutnya?',
+      choices:[
+        {text:'Ajukan perundingan bipartit terlebih dahulu, lalu lanjut ke mediasi Dinas Ketenagakerjaan bila gagal', ok:true, fb:'Tepat. Ini sesuai tahapan penyelesaian perselisihan hubungan industrial di Indonesia.'},
+        {text:'Langsung menyebarkan masalah ke media sosial', ok:false, fb:'Bukan langkah hukum formal dan berisiko menimbulkan masalah baru.'},
+        {text:'Menunggu tanpa tindakan apapun', ok:false, fb:'Tidak menguntungkan klien karena hak-haknya tertunda.'}
+      ]}
+  ]},
+{ id:'tanah', title:'Kasus Sengketa Tanah', tag:'Perdata', desc:'Dua pihak mengklaim kepemilikan atas sebidang tanah yang sama.',
+  steps:[
+    { q:'Langkah awal yang perlu dilakukan advokat adalah...', 
+      choices:[
+        {text:'Memverifikasi sertifikat dan riwayat kepemilikan tanah ke BPN', ok:true, fb:'Tepat. Legalitas dokumen kepemilikan adalah dasar utama dalam sengketa tanah.'},
+        {text:'Langsung mengajukan gugatan tanpa memeriksa dokumen', ok:false, fb:'Berisiko karena posisi hukum klien belum jelas tanpa verifikasi dokumen.'},
+        {text:'Menyarankan klien menduduki tanah secara paksa', ok:false, fb:'Tindakan ini melanggar hukum dan dapat merugikan klien secara pidana.'}
+      ]},
+    { q:'Setelah verifikasi, ternyata ada tumpang tindih sertifikat. Langkah selanjutnya?',
+      choices:[
+        {text:'Ajukan permohonan penyelesaian ke BPN sekaligus siapkan opsi gugatan perdata bila diperlukan', ok:true, fb:'Tepat. Jalur administratif di BPN bisa ditempuh berbarengan dengan persiapan langkah hukum lanjutan.'},
+        {text:'Abaikan tumpang tindih tersebut', ok:false, fb:'Mengabaikan masalah hanya akan memperbesar risiko sengketa berkepanjangan.'},
+        {text:'Langsung menyalahkan pihak lawan tanpa proses hukum', ok:false, fb:'Tidak menyelesaikan masalah secara hukum yang sah.'}
+      ]}
+  ]}
+];
+
+const faqs = [
+  {q:'Apakah konsultasi ini berbayar?', a:'Tidak. Fitur ini bersifat akademik untuk membantu diskusi materi modul.'},
+  {q:'Berapa lama waktu respon?', a:'Pesan diteruskan langsung via WhatsApp sehingga respon tergantung ketersediaan pengajar.'},
+  {q:'Apakah data saya aman?', a:'Data hanya digunakan untuk keperluan konsultasi akademik dan tidak dibagikan ke pihak ketiga.'}
+];
+
+/* ============ STATE ============ */
+let readModules = new Set();
+let bookmarks = new Set();
+let quizIndex = 0;
+let quizAnswers = new Array(quizQuestions.length).fill(null);
+let quizStarted = false;
+let quizName = '';
+
+/* ============ ROUTER ============ */
+function goPage(name){ location.hash = '#' + name; }
+function renderRoute(){
+  const hash = (location.hash || '#beranda').replace('#','');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const target = document.getElementById('page-'+hash) ? hash : 'beranda';
+  document.getElementById('page-'+target).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(l=>{
+    l.classList.toggle('active', l.dataset.page === target);
+  });
+  document.getElementById('mobileNav').classList.add('hidden');
+  window.scrollTo({top:0,behavior:'instant' in window ? 'instant':'auto'});
+}
+window.addEventListener('hashchange', renderRoute);
+
+/* ============ DARK MODE ============ */
+function toggleDark(){
+  document.documentElement.classList.toggle('dark');
+  document.getElementById('darkBtn').textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  showToast('Tampilan diubah ke mode ' + (document.documentElement.classList.contains('dark') ? 'gelap' : 'terang'));
+}
+
+/* ============ TOAST ============ */
+function showToast(msg, type){
+  const el = document.createElement('div');
+  el.className = 'toast px-4 py-3 rounded-[14px] text-sm text-white shadow-soft ' + (type==='error' ? 'bg-dangerc' : type==='success' ? 'bg-successc' : 'bg-primary');
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(()=>el.remove(), 3000);
+}
+
+/* ============ MODULES ============ */
+function renderModules(filter=''){
+  const container = document.getElementById('modulesContainer');
+  const f = filter.trim().toLowerCase();
+  const list = modules.filter(m => !f || m.title.toLowerCase().includes(f) || m.content.toLowerCase().includes(f));
+  if(list.length===0){
+    container.innerHTML = '<div class="card p-8 text-center text-sm text-gray-500 dark:text-gray-400">Materi tidak ditemukan untuk "'+filter+'"</div>';
+    return;
+  }
+  container.innerHTML = list.map((m,idx)=>`
+    <div class="card overflow-hidden" id="mod-${m.id}">
+      <button onclick="toggleAccordion(${m.id})" class="w-full flex items-center justify-between gap-4 p-5 text-left">
+        <div class="flex items-center gap-4">
+          <span class="w-9 h-9 rounded-[10px] bg-blue-50 dark:bg-blue-950 text-accent flex items-center justify-center text-sm font-semibold shrink-0">${String(m.id).padStart(2,'0')}</span>
+          <div>
+            <p class="font-medium dark:text-white">Bab ${m.id}. ${m.title}</p>
+            <p class="text-xs text-gray-400 mt-0.5">${m.readTime} menit baca ${readModules.has(m.id) ? '· <span class="text-successc">Selesai dibaca</span>' : ''}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <span onclick="event.stopPropagation(); toggleBookmark(${m.id})" class="cursor-pointer text-lg" id="bm-${m.id}">${bookmarks.has(m.id) ? '⭐' : '☆'}</span>
+          <span class="text-gray-400" id="chev-${m.id}">▾</span>
+        </div>
+      </button>
+      <div class="accordion-body px-5" id="acc-${m.id}">
+        <div class="pb-5 text-sm leading-relaxed text-gray-600 dark:text-gray-300 whitespace-pre-line border-t pt-4" style="border-color:#E5E7EB">${m.content}</div>
+      </div>
+    </div>
+  `).join('');
+  renderTOC();
+  renderBookmarks();
+}
+
+function toggleAccordion(id){
+  const body = document.getElementById('acc-'+id);
+  const chev = document.getElementById('chev-'+id);
+  const isOpen = body.style.maxHeight && body.style.maxHeight !== '0px';
+  document.querySelectorAll('.accordion-body').forEach(b=>b.style.maxHeight='0px');
+  document.querySelectorAll('[id^="chev-"]').forEach(c=>c.textContent='▾');
+  if(!isOpen){
+    body.style.maxHeight = body.scrollHeight + 40 + 'px';
+    chev.textContent = '▴';
+    if(!readModules.has(id)){
+      readModules.add(id);
+      updateProgress();
+      showToast('Bab ditandai selesai dibaca', 'success');
+    }
+  }
+}
+
+function toggleBookmark(id){
+  if(bookmarks.has(id)){ bookmarks.delete(id); } else { bookmarks.add(id); showToast('Materi disimpan ke bookmark'); }
+  document.getElementById('bm-'+id).textContent = bookmarks.has(id) ? '⭐' : '☆';
+  renderBookmarks();
+}
+
+function renderTOC(){
+  document.getElementById('tocList').innerHTML = modules.map(m=>`<li><a href="#mod-${m.id}" onclick="setTimeout(()=>{document.getElementById('mod-${m.id}').scrollIntoView({behavior:'smooth',block:'center'})},50)" class="hover:text-accent text-gray-500 dark:text-gray-400">${m.id}. ${m.title}</a></li>`).join('');
+}
+function renderBookmarks(){
+  const el = document.getElementById('bookmarkList');
+  if(bookmarks.size===0){ el.innerHTML = '<li class="text-xs italic">Belum ada materi disimpan.</li>'; return; }
+  el.innerHTML = [...bookmarks].map(id=>{
+    const m = modules.find(x=>x.id===id);
+    return `<li><a href="#mod-${id}" class="hover:text-accent">⭐ ${m.title}</a></li>`;
+  }).join('');
+}
+
+function updateProgress(){
+  const pct = Math.round((readModules.size / modules.length)*100);
+  document.getElementById('homeProgressBar').style.width = pct+'%';
+  document.getElementById('homeProgressLabel').textContent = pct+'%';
+  document.getElementById('modProgressBar').style.width = pct+'%';
+  document.getElementById('modProgressLabel').textContent = readModules.size + ' / ' + modules.length + ' bab dibaca';
+}
+
+/* ============ CASE SIMULATION ============ */
+function renderCases(){
+  document.getElementById('caseGrid').innerHTML = cases.map(c=>`
+    <div class="card p-6">
+      <span class="text-xs px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950 text-accent font-medium">${c.tag}</span>
+      <p class="font-medium mt-3 dark:text-white">${c.title}</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${c.desc}</p>
+      <button onclick="startCase('${c.id}')" class="btn-outline mt-4 px-4 py-2 text-sm dark:text-gray-200">Mulai Simulasi →</button>
+    </div>
+  `).join('');
+}
+let currentCase = null, currentStep = 0;
+function startCase(id){
+  currentCase = cases.find(c=>c.id===id);
+  currentStep = 0;
+  document.getElementById('caseRunner').classList.remove('hidden');
+  renderCaseStep();
+  document.getElementById('caseRunner').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function renderCaseStep(){
+  const c = currentCase;
+  const step = c.steps[currentStep];
+  document.getElementById('caseRunner').innerHTML = `
+    <div class="flex justify-between items-center mb-4">
+      <p class="text-xs text-gray-400">${c.title} · Langkah ${currentStep+1} dari ${c.steps.length}</p>
+      <button onclick="closeCase()" class="text-gray-400 hover:text-dangerc text-sm">Tutup ✕</button>
+    </div>
+    <p class="font-medium text-lg dark:text-white mb-5">${step.q}</p>
+    <div class="space-y-3" id="choiceArea">
+      ${step.choices.map((ch,i)=>`<button onclick="pickChoice(${i})" class="choice-btn w-full btn-outline px-5 py-3.5 text-sm dark:text-gray-200">${ch.text}</button>`).join('')}
+    </div>
+    <div id="feedbackArea" class="mt-5"></div>
+  `;
+}
+function pickChoice(i){
+  const step = currentCase.steps[currentStep];
+  const ch = step.choices[i];
+  document.getElementById('choiceArea').querySelectorAll('button').forEach(b=>b.disabled=true);
+  document.getElementById('feedbackArea').innerHTML = `
+    <div class="p-4 rounded-[14px] text-sm ${ch.ok ? 'bg-green-50 text-successc border border-green-200 dark:bg-green-950 dark:border-green-900' : 'bg-amber-50 text-warningc border border-amber-200 dark:bg-amber-950 dark:border-amber-900'}">
+      <p class="font-medium mb-1">${ch.ok ? '✓ Langkah yang tepat' : '⚠ Kurang tepat'}</p>
+      <p>${ch.fb}</p>
+    </div>
+    <div class="mt-4 flex justify-end">
+      <button onclick="nextCaseStep()" class="btn-accent px-5 py-2.5 text-sm">${currentStep < currentCase.steps.length-1 ? 'Lanjut →' : 'Selesai'}</button>
+    </div>
+  `;
+}
+function nextCaseStep(){
+  currentStep++;
+  if(currentStep >= currentCase.steps.length){
+    document.getElementById('caseRunner').innerHTML = `
+      <div class="text-center py-6">
+        <p class="text-4xl mb-3">✅</p>
+        <p class="font-medium text-lg dark:text-white">Simulasi "${currentCase.title}" selesai!</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">Kamu sudah melewati seluruh langkah pengambilan keputusan pada kasus ini. Coba kasus lain untuk melatih pemahamanmu lebih jauh.</p>
+        <button onclick="closeCase()" class="btn-accent mt-5 px-6 py-2.5 text-sm">Kembali ke Daftar Kasus</button>
+      </div>`;
+    showToast('Simulasi kasus selesai', 'success');
+    return;
+  }
+  renderCaseStep();
+}
+function closeCase(){ document.getElementById('caseRunner').classList.add('hidden'); currentCase=null; }
+
+/* ============ QUIZ ============ */
+function startQuiz(){
+  const name = document.getElementById('quizName').value.trim();
+  if(!name){ showToast('Masukkan nama kamu terlebih dahulu', 'error'); return; }
+  quizName = name;
+  quizStarted = true;
+  quizIndex = 0;
+  quizAnswers = new Array(quizQuestions.length).fill(null);
+  document.getElementById('quizIntro').classList.add('hidden');
+  document.getElementById('quizArea').classList.remove('hidden');
+  document.getElementById('quizResult').classList.add('hidden');
+  renderQuestion();
+}
+function renderQuestion(){
+  const q = quizQuestions[quizIndex];
+  document.getElementById('quizProgressLabel').textContent = `Soal ${quizIndex+1} / ${quizQuestions.length}`;
+  document.getElementById('quizProgressBar').style.width = ((quizIndex+1)/quizQuestions.length*100)+'%';
+  const answered = quizAnswers.filter(a=>a!==null).length;
+  document.getElementById('quizScoreLive').textContent = answered + ' terjawab';
+  document.getElementById('quizQuestionCard').innerHTML = `
+    <p class="font-medium text-lg dark:text-white mb-5">${q.q}</p>
+    <div class="space-y-3">
+      ${q.options.map((opt,i)=>`
+        <label class="flex items-center gap-3 btn-outline px-5 py-3.5 text-sm cursor-pointer dark:text-gray-200 ${quizAnswers[quizIndex]===i ? 'border-accent text-accent' : ''}">
+          <input type="radio" name="q${quizIndex}" class="accent-blue-600" ${quizAnswers[quizIndex]===i?'checked':''} onclick="quizAnswers[${quizIndex}]=${i}; renderQuestion();">
+          ${opt}
+        </label>`).join('')}
+    </div>`;
+  document.getElementById('nextBtn').textContent = quizIndex === quizQuestions.length-1 ? 'Selesai & Lihat Nilai' : 'Selanjutnya →';
+}
+function prevQuestion(){ if(quizIndex>0){ quizIndex--; renderQuestion(); } }
+function nextQuestion(){
+  if(quizIndex < quizQuestions.length-1){ quizIndex++; renderQuestion(); }
+  else { finishQuiz(); }
+}
+function finishQuiz(){
+  let score = 0;
+  quizQuestions.forEach((q,i)=>{ if(quizAnswers[i]===q.correct) score++; });
+  const pct = Math.round((score/quizQuestions.length)*100);
+  document.getElementById('quizArea').classList.add('hidden');
+  const resultEl = document.getElementById('quizResult');
+  resultEl.classList.remove('hidden');
+  const badge = pct>=90 ? 'Master Hukum 🏆' : pct>=80 ? 'Excellent 🎖️' : pct>=60 ? 'Cukup Baik 👍' : 'Perlu Belajar Lagi 📘';
+  resultEl.innerHTML = `
+    <div class="card p-8 text-center max-w-lg mx-auto">
+      <p class="text-5xl font-semibold text-accent">${pct}</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">dari 100 · ${score}/${quizQuestions.length} soal benar</p>
+      <p class="inline-block mt-4 px-4 py-1.5 rounded-full text-sm font-medium bg-blue-50 dark:bg-blue-950 text-accent">${badge}</p>
+      ${pct>80 ? `<div class="mt-6 p-6 border-2 border-dashed rounded-[18px]" style="border-color:#2563EB" id="certificate">
+          <p class="text-xs uppercase tracking-widest text-gray-400">Sertifikat Pencapaian</p>
+          <p class="text-xl font-semibold mt-2 dark:text-white">${quizName}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">telah menyelesaikan modul "Fundamental Law Firm" dengan nilai ${pct}</p>
+          <p class="text-xs text-gray-400 mt-3">E-Modul Fundamental Law Firm · ${new Date().toLocaleDateString('id-ID',{year:'numeric',month:'long',day:'numeric'})}</p>
+        </div>
+        <button onclick="window.print()" class="btn-accent mt-4 px-6 py-2.5 text-sm">Unduh / Cetak Sertifikat</button>` : ''}
+      <div class="mt-6">
+        <button onclick="reviewQuiz()" class="btn-outline px-5 py-2.5 text-sm mr-2 dark:text-gray-200">Lihat Pembahasan</button>
+        <button onclick="startQuiz()" class="btn-outline px-5 py-2.5 text-sm dark:text-gray-200">Ulangi Quiz</button>
+      </div>
+    </div>
+    <div id="reviewArea" class="max-w-2xl mx-auto mt-6 space-y-3"></div>
+  `;
+}
+function reviewQuiz(){
+  const el = document.getElementById('reviewArea');
+  el.innerHTML = quizQuestions.map((q,i)=>{
+    const correct = quizAnswers[i]===q.correct;
+    return `<div class="card p-5">
+      <p class="text-sm font-medium dark:text-white">${i+1}. ${q.q}</p>
+      <p class="text-sm mt-2 ${correct ? 'text-successc' : 'text-dangerc'}">Jawaban kamu: ${quizAnswers[i]!==null ? q.options[quizAnswers[i]] : '(kosong)'} ${correct ? '✓' : '✗'}</p>
+      ${!correct ? `<p class="text-sm text-successc mt-1">Jawaban benar: ${q.options[q.correct]}</p>` : ''}
+      <p class="text-xs text-gray-400 mt-2">${q.explanation}</p>
+    </div>`;
+  }).join('');
+}
+
+/* ============ CONSULTATION ============ */
+function submitConsult(e){
+  e.preventDefault();
+  const f = e.target;
+  const data = Object.fromEntries(new FormData(f).entries());
+  const msg = `Halo, saya ingin konsultasi:%0A%0ANama: ${data.nama}%0AEmail: ${data.email}%0ANo HP: ${data.hp}%0AUniversitas: ${data.univ}%0ASemester: ${data.semester}%0AKategori: ${data.kategori}%0A%0APertanyaan:%0A${encodeURIComponent(data.pertanyaan)}`;
+  const phone = '6283107292011';
+  window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  showToast('Membuka WhatsApp...', 'success');
+  f.reset();
+}
+
+/* ============ FAQ ============ */
+function renderFAQ(){
+  document.getElementById('faqList').innerHTML = faqs.map((f,i)=>`
+    <div class="card p-4">
+      <button class="w-full text-left text-sm font-medium flex justify-between dark:text-white" onclick="const b=this.nextElementSibling; b.classList.toggle('hidden');">
+        ${f.q} <span class="text-gray-400">▾</span>
+      </button>
+      <p class="hidden text-sm text-gray-500 dark:text-gray-400 mt-2">${f.a}</p>
+    </div>`).join('');
+}
+
+/* ============ MISC ============ */
+function shareModul(){
+  if(navigator.share){ navigator.share({title:'Fundamental Law Firm — E-Modul Interaktif', url: location.href}); }
+  else { navigator.clipboard?.writeText(location.href); showToast('Tautan modul disalin ke clipboard'); }
+}
+
+/* ============ INIT ============ */
+function animateStat(id, target){
+  let cur = 0; const step = Math.ceil(target/40);
+  const t = setInterval(()=>{ cur += step; if(cur>=target){cur=target; clearInterval(t);} document.getElementById(id).textContent = cur.toLocaleString('id-ID'); }, 25);
+}
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('scrollProgress').style.width = pct + '%';
+  document.getElementById('backToTop').classList.toggle('hidden', h.scrollTop < 400);
+});
+
+renderRoute();
+renderModules();
+renderCases();
+renderFAQ();
+updateProgress();
+animateStat('statAdvokat', 78000);
+animateStat('statFirma', 1200);
+animateStat('statPerkara', 4200000);
+</script>
+</body>
+</html>
